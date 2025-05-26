@@ -1,43 +1,59 @@
 import random
 
 def fitness(chromosome):
-    score = 0
     n = len(chromosome)
+    score = 0
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             if chromosome[i] != chromosome[j] and abs(chromosome[i] - chromosome[j]) != abs(i - j):
                 score += 1
     return score
 
-def random_chromosome(n):
-    return random.sample(range(n), n)
+def create_population(size, n):
+    return [random.sample(range(n), n) for _ in range(size)]
 
-def mutate(chromosome):
-    i, j = random.sample(range(len(chromosome)), 2)
-    chromosome[i], chromosome[j] = chromosome[j], chromosome[i]
-    return chromosome
+def roulette_selection(population, fitnesses):
+    total = sum(fitnesses)
+    pick = random.uniform(0, total)
+    current = 0
+    for ind, fit in zip(population, fitnesses):
+        current += fit
+        if current > pick:
+            return ind
+    return population[-1]
 
 def crossover(p1, p2):
-    cut = random.randint(1, len(p1)-1)
-    return p1[:cut] + p2[cut:]
+    n = len(p1)
+    point = random.randint(1, n - 2)
+    child = p1[:point] + [gene for gene in p2 if gene not in p1[:point]]
+    return child
 
-def very_simple_genetic(n=8, pop_size=20, generations=100):
-    population = [random_chromosome(n) for _ in range(pop_size)]
+def mutate(chromosome, mutation_rate=0.1):
+    if random.random() < mutation_rate:
+        i, j = random.sample(range(len(chromosome)), 2)
+        chromosome[i], chromosome[j] = chromosome[j], chromosome[i]
+    return chromosome
 
-    for _ in range(generations):
-        new_population = []
-        for _ in range(pop_size):
-            p1 = random.choice(population)
-            p2 = random.choice(population)
+def genetic_n_queens_stage2(n=8, pop_size=50, generations=500, elite_count=1):
+    population = create_population(pop_size, n)
+    max_fitness = n * (n - 1) // 2
+
+    for gen in range(generations):
+        fitnesses = [fitness(ind) for ind in population]
+        sorted_pop = [x for _, x in sorted(zip(fitnesses, population), reverse=True)]
+        new_population = sorted_pop[:elite_count]
+
+        while len(new_population) < pop_size:
+            p1 = roulette_selection(population, fitnesses)
+            p2 = roulette_selection(population, fitnesses)
             child = crossover(p1, p2)
-            if random.random() < 0.5:
-                child = mutate(child)
+            child = mutate(child)
             new_population.append(child)
+
         population = new_population
 
-    # Print best
     best = max(population, key=fitness)
-    print("Best:", best)
+    print("Best solution after", generations, "generations:", best, "Fitness:", fitness(best))
 
 if __name__ == "__main__":
-    very_simple_genetic()
+    genetic_n_queens_stage2()
