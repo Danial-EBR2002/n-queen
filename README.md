@@ -30,14 +30,6 @@ A population-based heuristic method that evolves placements across generations u
 
 ---
 
-## Screenshot
-
-Make sure to have a file named LightQueen.webp (a queen chess piece image) in the same folder.
-
-You can optionally add a screenshot.png to preview the UI here.
-
----
-
 ## How to Run
 
 ### Requirements
